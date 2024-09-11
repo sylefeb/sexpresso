@@ -21,6 +21,7 @@ namespace sexpresso {
 		Sexp(std::string const& strval);
 		Sexp(std::vector<Sexp> const& sexpval);
 		SexpValueKind kind;
+		bool inQuotes = false;
 		struct { std::vector<Sexp> sexp; std::string str; } value;
 		auto addChild(Sexp sexp) -> void;
 		auto addChild(std::string str) -> void;

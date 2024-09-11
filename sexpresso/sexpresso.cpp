@@ -41,6 +41,7 @@ namespace sexpresso {
 
 	auto Sexp::addChildUnescaped(std::string str) -> void {
 		this->addChild(Sexp::unescaped(std::move(str)));
+		this->getChild(this->childCount() - 1).inQuotes = true;
 	}
 
 	auto Sexp::addExpression(std::string const& str) -> void {
@@ -184,15 +185,19 @@ namespace sexpresso {
 	}
 
 	static auto stringValToString(std::string const& s) -> std::string {
-		if(s.size() == 0) return std::string{"\"\""};
+		if(s.size() == 0) return std::string{};
 		if((std::find(s.begin(), s.end(), ' ') == s.end()) && countEscapeValues(s) == 0) return s;
-		return ('"' + escape(s) + '"');
+		return escape(s);
 	}
 
  static auto toStringImpl(Sexp const& sexp, std::ostringstream& ostream) -> void {
 		switch(sexp.kind) {
 		case SexpValueKind::STRING:
-			ostream << stringValToString(sexp.value.str);
+			if (sexp.inQuotes) {
+				ostream << "\"" << stringValToString(sexp.value.str) << "\"";
+			} else {
+				ostream << stringValToString(sexp.value.str);
+			}
 			break;
 		case SexpValueKind::SEXP:
 			switch(sexp.value.sexp.size()) {
@@ -203,6 +208,7 @@ namespace sexpresso {
 				ostream << '(';
 				toStringImpl(sexp.value.sexp[0], ostream);
 				ostream <<  ')';
+				ostream << '\n';
 				break;
 			default:
 				ostream << '(';
@@ -211,6 +217,7 @@ namespace sexpresso {
 					if(i != sexp.value.sexp.end()-1) ostream << ' ';
 				}
 				ostream << ')';
+				ostream << '\n';
 			}
 		}
 	}
